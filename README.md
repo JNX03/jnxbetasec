@@ -1,7 +1,3 @@
-Below is an enhanced version of the README.md that highlights both the Python and NPM usage:
-
----
-
 # JnxBetaSec
 
 [![PyPI version](https://img.shields.io/pypi/v/jnxbetasec.svg)](https://test.pypi.org/project/jnxbetasec)  [![Python Versions](https://img.shields.io/pypi/pyversions/jnxbetasec.svg)](https://test.pypi.org/project/jnxbetasec/)  [![npm version](https://img.shields.io/npm/v/jnxbetasec.svg)](https://www.npmjs.com/package/jnxbetasec)  [![License](https://img.shields.io/pypi/l/jnxbetasec.svg)](https://github.com/JNX03/jnxbetasec/blob/main/LICENSE)
