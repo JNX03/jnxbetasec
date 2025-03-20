@@ -1,31 +1,75 @@
+Below is an enhanced version of the README.md that highlights both the Python and NPM usage:
+
+---
+
 # JnxBetaSec
 
-A comprehensive security library for encryption, hashing, and secure data handling.
+[![PyPI version](https://img.shields.io/pypi/v/jnxbetasec.svg)](https://test.pypi.org/project/jnxbetasec)  [![Python Versions](https://img.shields.io/pypi/pyversions/jnxbetasec.svg)](https://test.pypi.org/project/jnxbetasec/)  [![npm version](https://img.shields.io/npm/v/jnxbetasec.svg)](https://www.npmjs.com/package/jnxbetasec)  [![License](https://img.shields.io/pypi/l/jnxbetasec.svg)](https://github.com/JNX03/jnxbetasec/blob/main/LICENSE)
 
-[![PyPI version](https://img.shields.io/pypi/v/jnxbetasec.svg)](https://test.pypi.org/project/jnxbetasec)
-[![Python Versions](https://img.shields.io/pypi/pyversions/jnxbetasec.svg)](https://test.pypi.org/project/jnxbetasec/)
-[![npm version](https://img.shields.io/npm/v/jnxbetasec.svg)](https://www.npmjs.com/package/jnxbetasec)
-[![Node.js CI](https://github.com/JNX03/jnxbetasec/actions/workflows/node.js.yml/badge.svg)](https://github.com/JNX03/jnxbetasec/actions/workflows/node.js.yml)
-[![License](https://img.shields.io/pypi/l/jnxbetasec.svg)](https://github.com/JNX03/jnxbetasec/blob/main/LICENSE)
+A comprehensive security library for encryption, hashing, and secure data handling, available for both Python and Node.js environments.
+
+---
+
+## Table of Contents
+
+- [Features](#features)
+- [Installation](#installation)
+  - [Python](#python)
+  - [Node.js (NPM)](#nodejs-npm)
+- [Usage](#usage)
+  - [Python API](#python-api-usage)
+  - [Command-line Interface](#command-line-interface)
+  - [Node.js Usage](#nodejs-usage)
+- [Project Structure](#project-structure)
+- [Contributing](#contributing)
+- [License](#license)
+
+---
 
 ## Features
 
-- Strong file encryption with multi-layer protection
-- Secure password hashing and verification
-- File integrity verification
-- Command-line interface for easy usage
-- Importable Python API for integration into your projects
+- **Robust Encryption:** Multi-layer protection for file encryption.
+- **Secure Hashing:** Reliable password hashing and verification.
+- **Integrity Verification:** Validate file integrity with secure hashing.
+- **Command-line Interface:** Easily encrypt, decrypt, and hash files via CLI.
+- **API Integration:** Importable modules for seamless integration in your Python projects.
+- **Dual Platform Support:** Use in Python projects or integrate in Node.js applications.
+
+---
 
 ## Installation
 
+### Python
+
+Install JnxBetaSec via pip:
+
 ```bash
 pip install jnxbetasec
-
 ```
+
+For development, install in editable mode:
+
+```bash
+pip install -e .
+```
+
+### Node.js (NPM)
+
+Install the Node.js version via npm:
+
+```bash
+npm i jnxbetasec
+```
+
+For more details, refer to the [NPM package page](https://www.npmjs.com/package/jnxbetasec).
+
+---
+
+## Usage
 
 ### Python API Usage
 
-You can also import and use JnxBetaSec in your Python code:
+Integrate the library in your Python project by importing the relevant modules:
 
 ```python
 from jnxbetasec import Encryption, Hashing
@@ -48,6 +92,57 @@ decrypted_file = encryptor.decrypt_file(
 print(f"File decrypted: {decrypted_file}")
 ```
 
+### Command-line Interface
+
+After installation, you can quickly perform security operations via the CLI:
+
+- **Encrypt a file:**
+
+  ```bash
+  jnxbetasec --encrypt --file document.pdf --password "your-secure-password"
+  ```
+
+- **Decrypt a file:**
+
+  ```bash
+  jnxbetasec --decrypt --file document.jnx --password "your-secure-password"
+  ```
+
+- **Generate a file hash (e.g., SHA-256):**
+
+  ```bash
+  jnxbetasec --hash --file document.pdf --algorithm sha256
+  ```
+
+- **Batch process files in a directory (recursive):**
+
+  ```bash
+  jnxbetasec --batch --encrypt --directory ./documents/ --password "your-secure-password" --recursive
+  ```
+
+### Node.js Usage
+
+For Node.js projects, after installation, you can require the package and utilize its functionalities. (Refer to the [NPM documentation](https://www.npmjs.com/package/jnxbetasec) for complete API details.)
+
+```javascript
+const jnxbetasec = require('jnxbetasec');
+
+// Example: Encrypt a file (usage might vary based on your implementation)
+jnxbetasec.encryptFile({
+  filePath: 'document.pdf',
+  password: 'your-secure-password',
+  userId: 'user123'
+})
+.then(encryptedFile => {
+  console.log(`File encrypted: ${encryptedFile}`);
+})
+.catch(err => {
+  console.error('Encryption failed:', err);
+});
+```
+
+---
+
 ## Project Structure
 
 ```plaintext
@@ -69,40 +164,22 @@ jnxbetasec/
 │       └── test_hashing.py
 ```
 
-## How to Use JnxBetaSec
+---
 
-The JnxBetaSec library provides both a command-line interface and a Python API for secure file encryption, decryption, and hashing.
+## Contributing
 
-### Installation
+Contributions are welcome! If you wish to improve JnxBetaSec:
 
-Once you've downloaded the code, you can install it using pip:
+1. Fork the repository.
+2. Create a new branch for your feature or bugfix.
+3. Ensure that all tests pass.
+4. Submit a pull request outlining your changes.
 
-```shellscript
-# Navigate to the directory containing setup.py
-cd jnxbetasec
+---
 
-# Install the package
-pip install .
+## License
 
-# Or install in development mode
-pip install -e .
-```
+JnxBetaSec is licensed under the terms of the [MIT License](https://github.com/JNX03/jnxbetasec/blob/main/LICENSE).
 
-### Command-line Usage
-
-After installation, you can use JnxBetaSec directly from the command line:
-
-```shellscript
-# Encrypt a file
-jnxbetasec --encrypt --file document.pdf --password "your-secure-password"
-
-# Decrypt a file
-jnxbetasec --decrypt --file document.jnx --password "your-secure-password"
-
-# Generate a hash for a file
-jnxbetasec --hash --file document.pdf --algorithm sha256
-
-# Process multiple files in a directory
-jnxbetasec --batch --encrypt --directory ./documents/ --password "your-secure-password" --recursive
-```
+---
 
