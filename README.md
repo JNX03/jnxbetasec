@@ -2,8 +2,10 @@
 
 A comprehensive security library for encryption, hashing, and secure data handling.
 
-<!-- [![PyPI version](https://img.shields.io/pypi/v/jnxbetasec.svg)](https://pypi.org/project/jnxbetasec/)
-[![Python Versions](https://img.shields.io/pypi/pyversions/jnxbetasec.svg)](https://pypi.org/project/jnxbetasec/) -->
+[![PyPI version](https://img.shields.io/pypi/v/jnxbetasec.svg)](https://test.pypi.org/project/jnxbetasec)
+[![Python Versions](https://img.shields.io/pypi/pyversions/jnxbetasec.svg)](https://test.pypi.org/project/jnxbetasec/)
+[![npm version](https://img.shields.io/npm/v/jnxbetasec.svg)](https://www.npmjs.com/package/jnxbetasec)
+[![Node.js CI](https://github.com/JNX03/jnxbetasec/actions/workflows/node.js.yml/badge.svg)](https://github.com/JNX03/jnxbetasec/actions/workflows/node.js.yml)
 [![License](https://img.shields.io/pypi/l/jnxbetasec.svg)](https://github.com/JNX03/jnxbetasec/blob/main/LICENSE)
 
 ## Features
