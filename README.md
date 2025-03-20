@@ -5,7 +5,6 @@
 A comprehensive security library for encryption, hashing, and secure data handling, available for both Python and Node.js environments.
 
 ---
-
 ## Table of Contents
 
 - [Features](#features)
@@ -17,6 +16,7 @@ A comprehensive security library for encryption, hashing, and secure data handli
   - [Command-line Interface](#command-line-interface)
   - [Node.js Usage](#nodejs-usage)
 - [Project Structure](#project-structure)
+- [Project Architecture](#project-architecture)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -159,7 +159,11 @@ jnxbetasec/
 │       ├── test_encryption.py
 │       └── test_hashing.py
 ```
+---
 
+## Project Architecture
+
+![Untitled diagram-2025-03-20-160558](https://github.com/user-attachments/assets/26945d77-1b4f-4a10-a790-60c0bc82a71f)
 ---
 
 ## Contributing
