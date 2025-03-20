@@ -67,12 +67,6 @@ jnxbetasec/
 │       └── test_hashing.py
 ```
 
-Let's implement each component:
-
-```typescriptreact project="jnxbetasec"
-...
-```
-
 ## How to Use JnxBetaSec
 
 The JnxBetaSec library provides both a command-line interface and a Python API for secure file encryption, decryption, and hashing.
