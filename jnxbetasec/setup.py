@@ -4,14 +4,14 @@ import os
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
-version = "1.0.0"
+version = "2.0.0"
 
 setup(
-    name="jnxbetasec",
+    name="securekit",
     version=version,
     author="Jnx03(Chawabhon Netisingha)",
     author_email="Jn03official@gmail.com",
-    description="A comprehensive security library for encryption, hashing, and secure data handling",
+    description="SecureKit - A comprehensive security toolkit for encryption, hashing, network security, and secure data handling with advanced CLI features",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/JNX03/jnxbetasec/",
@@ -38,13 +38,15 @@ setup(
         "Topic :: Security :: Cryptography",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
-    keywords="security, encryption, cryptography, hashing, file encryption",
+    keywords="security, encryption, cryptography, hashing, network-security, file-encryption, password-generator, certificate-validation, secure-deletion, security-toolkit, cli-security, defensive-security",
     python_requires=">=3.8",
     install_requires=[
         "cryptography>=39.0.0",
         "pillow>=9.0.0",
         "click>=8.0.0",
         "tqdm>=4.62.0",
+        "requests>=2.28.0",
+        "pycryptodome>=3.15.0",
     ],
     extras_require={
         "dev": [
@@ -62,7 +64,7 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "jnxbetasec=jnxbetasec.cli:main",
+            "securekit=jnxbetasec.cli:main",
         ],
     },
     include_package_data=True,

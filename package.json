@@ -1,11 +1,11 @@
 {
-  "name": "jnxbetasec",
-  "version": "1.0.0",
-  "description": "A comprehensive security library for encryption, hashing, and secure data handling",
+  "name": "securekit",
+  "version": "2.0.0",
+  "description": "SecureKit - A comprehensive security toolkit for encryption, hashing, network security, and secure data handling with advanced CLI features",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "jnxbetasec": "dist/cli.js"
+    "securekit": "dist/cli.js"
   },
   "scripts": {
     "build": "tsc",
@@ -13,13 +13,20 @@
     "prepublishOnly": "npm run build"
   },
   "keywords": [
-    "encryption",
     "security",
+    "encryption",
     "cryptography",
     "hashing",
-    "file-encryption"
+    "network-security",
+    "file-encryption",
+    "password-generator",
+    "certificate-validation",
+    "secure-deletion",
+    "security-toolkit",
+    "cli-security",
+    "defensive-security"
   ],
-  "author": "",
+  "author": "Jnx03 (Chawabhon Netisingha) <Jn03official@gmail.com>",
   "license": "MIT",
   "dependencies": {
     "commander": "^11.0.0",
@@ -28,7 +35,8 @@
     "chalk": "^4.1.2",
     "inquirer": "^8.2.5",
     "ora": "^5.4.1",
-    "glob": "^10.3.3"
+    "glob": "^10.3.3",
+    "zlib": "^1.0.5"
   },
   "devDependencies": {
     "@types/crypto-js": "^4.1.1",

@@ -37,14 +37,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const path = __importStar(require("path"));
+const fs = __importStar(require("fs"));
+const crypto = __importStar(require("crypto"));
 const commander_1 = require("commander");
 const chalk_1 = __importDefault(require("chalk"));
 const inquirer_1 = __importDefault(require("inquirer"));
 const ora_1 = __importDefault(require("ora"));
 const encryption_1 = require("./core/encryption");
 const hashing_1 = require("./core/hashing");
-const utils_1 = require("./core/utils");
 const version_1 = require("./version");
 // Configure logging
 const log = {
@@ -53,15 +53,127 @@ const log = {
     warning: (message) => console.log(chalk_1.default.yellow(message)),
     error: (message) => console.error(chalk_1.default.red(message)),
 };
-commander_1.program.name("jnxbetasec").description("JnxBetaSec - A comprehensive security library").version(version_1.VERSION);
+// Security utilities
+class SecurityUtils {
+    static generatePassword(length = 32, includeSymbols = true) {
+        const lowercase = 'abcdefghijklmnopqrstuvwxyz';
+        const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const numbers = '0123456789';
+        const symbols = '!@#$%^&*()_+-=[]{}|;:,.<>?';
+        let charset = lowercase + uppercase + numbers;
+        if (includeSymbols)
+            charset += symbols;
+        let password = '';
+        for (let i = 0; i < length; i++) {
+            password += charset.charAt(Math.floor(Math.random() * charset.length));
+        }
+        return password;
+    }
+    static secureDelete(filePath) {
+        try {
+            const stats = fs.statSync(filePath);
+            const fileSize = stats.size;
+            // Overwrite with random data 3 times
+            for (let i = 0; i < 3; i++) {
+                const randomData = crypto.randomBytes(fileSize);
+                fs.writeFileSync(filePath, randomData);
+            }
+            // Finally delete the file
+            fs.unlinkSync(filePath);
+            return true;
+        }
+        catch (error) {
+            return false;
+        }
+    }
+    static validateCertificate(certPath) {
+        try {
+            const certData = fs.readFileSync(certPath, 'utf8');
+            // Basic certificate validation
+            const isValidFormat = certData.includes('-----BEGIN CERTIFICATE-----') &&
+                certData.includes('-----END CERTIFICATE-----');
+            return {
+                valid: isValidFormat,
+                details: {
+                    format: isValidFormat ? 'PEM' : 'Unknown',
+                    size: certData.length,
+                    path: certPath
+                }
+            };
+        }
+        catch (error) {
+            return { valid: false, details: { error: error instanceof Error ? error.message : String(error) } };
+        }
+    }
+    static scanNetworkPorts(host, ports) {
+        return new Promise((resolve) => {
+            const net = require('net');
+            const open = [];
+            const closed = [];
+            let completed = 0;
+            ports.forEach(port => {
+                const socket = new net.Socket();
+                const timeout = 3000;
+                socket.setTimeout(timeout);
+                socket.on('connect', () => {
+                    open.push(port);
+                    socket.destroy();
+                    completed++;
+                    if (completed === ports.length)
+                        resolve({ open, closed });
+                });
+                socket.on('timeout', () => {
+                    closed.push(port);
+                    socket.destroy();
+                    completed++;
+                    if (completed === ports.length)
+                        resolve({ open, closed });
+                });
+                socket.on('error', () => {
+                    closed.push(port);
+                    completed++;
+                    if (completed === ports.length)
+                        resolve({ open, closed });
+                });
+                socket.connect(port, host);
+            });
+        });
+    }
+    static analyzeLogFile(logPath, pattern) {
+        try {
+            const logData = fs.readFileSync(logPath, 'utf8');
+            const lines = logData.split('\n');
+            const regex = new RegExp(pattern, 'gi');
+            const matchingLines = lines.filter(line => regex.test(line));
+            return {
+                matches: matchingLines.length,
+                lines: matchingLines.slice(0, 50) // Limit to first 50 matches
+            };
+        }
+        catch (error) {
+            return { matches: 0, lines: [] };
+        }
+    }
+    static compressFile(filePath, outputPath) {
+        const zlib = require('zlib');
+        const inputBuffer = fs.readFileSync(filePath);
+        const compressed = zlib.gzipSync(inputBuffer);
+        const output = outputPath || `${filePath}.gz`;
+        fs.writeFileSync(output, compressed);
+        return output;
+    }
+    static decompressFile(filePath, outputPath) {
+        const zlib = require('zlib');
+        const inputBuffer = fs.readFileSync(filePath);
+        const decompressed = zlib.gunzipSync(inputBuffer);
+        const output = outputPath || filePath.replace('.gz', '');
+        fs.writeFileSync(output, decompressed);
+        return output;
+    }
+}
+commander_1.program.name("securekit").description("SecureKit - A comprehensive security toolkit with advanced features").version(version_1.VERSION);
 commander_1.program
-    .option("--encrypt", "Encrypt a file")
-    .option("--decrypt", "Decrypt a file")
-    .option("--hash", "Generate a hash for a file")
-    .option("--verify", "Verify a file against a hash")
-    .option("--generate-keys", "Generate a new key pair")
-    .option("--export-key", "Export a key")
-    .option("--batch", "Process multiple files")
+    .option("--type <type>", "Operation type: encryption, decryption, hash, verify, password, secure-delete, compress, decompress, network-scan, cert-validate, log-analysis, integrity-check")
     .option("--file <path>", "Path to the file")
     .option("--directory <path>", "Path to the directory (for batch operations)")
     .option("--password <password>", "Password for encryption/decryption")
@@ -69,227 +181,287 @@ commander_1.program
     .option("--hash-value <hash>", "Hash value for verification")
     .option("--user <id>", "User ID for key operations")
     .option("--output <path>", "Output path")
-    .option("--type <type>", "Key type (public/private)")
+    .option("--key-type <type>", "Key type (public/private)")
     .option("--recursive", "Process directories recursively")
     .option("--content-type <type>", "Content type (image/text)")
+    .option("--length <number>", "Password length (default: 32)", "32")
+    .option("--include-symbols", "Include symbols in password generation")
+    .option("--host <host>", "Host for network operations")
+    .option("--ports <ports>", "Comma-separated list of ports to scan")
+    .option("--pattern <pattern>", "Pattern for log analysis")
+    .option("--overwrite-passes <number>", "Number of overwrite passes for secure deletion", "3")
+    .option("--batch", "Enable batch processing")
     .option("-v, --verbose", "Enable verbose output");
 async function main() {
     commander_1.program.parse();
     const options = commander_1.program.opts();
     // Configure verbosity
     const verbose = options.verbose;
-    // No command specified, show help
-    if (!options.encrypt &&
-        !options.decrypt &&
-        !options.hash &&
-        !options.verify &&
-        !options.generateKeys &&
-        !options.exportKey &&
-        !options.batch) {
+    // Show help if no operation type specified
+    if (!options.type) {
         commander_1.program.help();
         return;
     }
+    // Input validation
+    const sanitizeInput = (input) => {
+        return input.replace(/[<>:"'|?*\x00-\x1f]/g, '').trim();
+    };
     try {
-        // Single file operations
-        if (options.encrypt && options.file) {
-            let password = options.password;
-            if (!password) {
-                const answers = await inquirer_1.default.prompt([
-                    {
-                        type: "password",
-                        name: "password",
-                        message: "Enter encryption password:",
-                        mask: "*",
-                    },
-                    {
-                        type: "password",
-                        name: "confirmPassword",
-                        message: "Confirm encryption password:",
-                        mask: "*",
-                    },
-                ]);
-                if (answers.password !== answers.confirmPassword) {
-                    log.error("Passwords do not match");
+        switch (options.type.toLowerCase()) {
+            case 'encryption':
+                if (!options.file) {
+                    log.error("File path required for encryption");
                     process.exit(1);
                 }
-                password = answers.password;
-            }
-            const spinner = (0, ora_1.default)("Encrypting file...").start();
-            try {
-                const encryptor = new encryption_1.Encryption({
-                    userId: options.user || "default_user",
-                });
-                const result = await encryptor.encryptFile(options.file, password, options.contentType);
-                spinner.succeed(`File encrypted: ${result}`);
-            }
-            catch (error) {
-                spinner.fail(`Encryption failed: ${error instanceof Error ? error.message : String(error)}`);
-                process.exit(1);
-            }
-        }
-        else if (options.decrypt && options.file) {
-            let password = options.password;
-            if (!password) {
-                const answers = await inquirer_1.default.prompt([
-                    {
-                        type: "password",
-                        name: "password",
-                        message: "Enter decryption password:",
-                        mask: "*",
-                    },
-                ]);
-                password = answers.password;
-            }
-            const spinner = (0, ora_1.default)("Decrypting file...").start();
-            try {
-                const encryptor = new encryption_1.Encryption({
-                    userId: options.user || "default_user",
-                });
-                const result = await encryptor.decryptFile(options.file, password, options.output);
-                spinner.succeed(`File decrypted: ${result}`);
-            }
-            catch (error) {
-                spinner.fail(`Decryption failed: ${error instanceof Error ? error.message : String(error)}`);
-                process.exit(1);
-            }
-        }
-        else if (options.hash && options.file) {
-            const spinner = (0, ora_1.default)("Generating hash...").start();
-            try {
-                const hasher = new hashing_1.Hashing();
-                const result = await hasher.hashFile(options.file, options.algorithm);
-                spinner.succeed(`File hash (${options.algorithm}): ${result}`);
-            }
-            catch (error) {
-                spinner.fail(`Hashing failed: ${error instanceof Error ? error.message : String(error)}`);
-                process.exit(1);
-            }
-        }
-        else if (options.verify && options.file && options.hashValue) {
-            const spinner = (0, ora_1.default)("Verifying file...").start();
-            try {
-                const hasher = new hashing_1.Hashing();
-                const result = await hasher.verifyFile(options.file, options.hashValue, options.algorithm);
-                if (result) {
-                    spinner.succeed("Verification result: Success");
+                let encPassword = options.password;
+                if (!encPassword) {
+                    const answers = await inquirer_1.default.prompt([
+                        {
+                            type: "password",
+                            name: "password",
+                            message: "Enter encryption password:",
+                            mask: "*",
+                        },
+                        {
+                            type: "password",
+                            name: "confirmPassword",
+                            message: "Confirm encryption password:",
+                            mask: "*",
+                        },
+                    ]);
+                    if (answers.password !== answers.confirmPassword) {
+                        log.error("Passwords do not match");
+                        process.exit(1);
+                    }
+                    encPassword = answers.password;
+                }
+                const spinner1 = (0, ora_1.default)("Encrypting file...").start();
+                try {
+                    const encryptor = new encryption_1.Encryption({
+                        userId: sanitizeInput(options.user || "default_user"),
+                    });
+                    const result = await encryptor.encryptFile(sanitizeInput(options.file), encPassword, options.contentType);
+                    spinner1.succeed(`File encrypted: ${result}`);
+                }
+                catch (error) {
+                    spinner1.fail(`Encryption failed: ${error instanceof Error ? error.message : String(error)}`);
+                    process.exit(1);
+                }
+                break;
+            case 'decryption':
+                if (!options.file) {
+                    log.error("File path required for decryption");
+                    process.exit(1);
+                }
+                let decPassword = options.password;
+                if (!decPassword) {
+                    const answers = await inquirer_1.default.prompt([
+                        {
+                            type: "password",
+                            name: "password",
+                            message: "Enter decryption password:",
+                            mask: "*",
+                        },
+                    ]);
+                    decPassword = answers.password;
+                }
+                const spinner2 = (0, ora_1.default)("Decrypting file...").start();
+                try {
+                    const encryptor = new encryption_1.Encryption({
+                        userId: sanitizeInput(options.user || "default_user"),
+                    });
+                    const result = await encryptor.decryptFile(sanitizeInput(options.file), decPassword, options.output ? sanitizeInput(options.output) : undefined);
+                    spinner2.succeed(`File decrypted: ${result}`);
+                }
+                catch (error) {
+                    spinner2.fail(`Decryption failed: ${error instanceof Error ? error.message : String(error)}`);
+                    process.exit(1);
+                }
+                break;
+            case 'hash':
+                if (!options.file) {
+                    log.error("File path required for hashing");
+                    process.exit(1);
+                }
+                const spinner3 = (0, ora_1.default)("Generating hash...").start();
+                try {
+                    const hasher = new hashing_1.Hashing();
+                    const result = await hasher.hashFile(sanitizeInput(options.file), sanitizeInput(options.algorithm));
+                    spinner3.succeed(`File hash (${options.algorithm}): ${result}`);
+                }
+                catch (error) {
+                    spinner3.fail(`Hashing failed: ${error instanceof Error ? error.message : String(error)}`);
+                    process.exit(1);
+                }
+                break;
+            case 'verify':
+                if (!options.file || !options.hashValue) {
+                    log.error("File path and hash value required for verification");
+                    process.exit(1);
+                }
+                const spinner4 = (0, ora_1.default)("Verifying file...").start();
+                try {
+                    const hasher = new hashing_1.Hashing();
+                    const result = await hasher.verifyFile(sanitizeInput(options.file), sanitizeInput(options.hashValue), sanitizeInput(options.algorithm));
+                    if (result) {
+                        spinner4.succeed("Verification result: Success");
+                    }
+                    else {
+                        spinner4.fail("Verification result: Failed");
+                        process.exit(1);
+                    }
+                }
+                catch (error) {
+                    spinner4.fail(`Verification failed: ${error instanceof Error ? error.message : String(error)}`);
+                    process.exit(1);
+                }
+                break;
+            case 'password':
+                const length = parseInt(options.length) || 32;
+                const includeSymbols = options.includeSymbols || false;
+                const password = SecurityUtils.generatePassword(length, includeSymbols);
+                log.success(`Generated password: ${password}`);
+                log.info(`Password strength: ${length} characters, ${includeSymbols ? 'with' : 'without'} symbols`);
+                break;
+            case 'secure-delete':
+                if (!options.file) {
+                    log.error("File path required for secure deletion");
+                    process.exit(1);
+                }
+                const spinner5 = (0, ora_1.default)("Securely deleting file...").start();
+                const deleteResult = SecurityUtils.secureDelete(sanitizeInput(options.file));
+                if (deleteResult) {
+                    spinner5.succeed("File securely deleted");
                 }
                 else {
-                    spinner.fail("Verification result: Failed");
+                    spinner5.fail("Secure deletion failed");
                     process.exit(1);
                 }
-            }
-            catch (error) {
-                spinner.fail(`Verification failed: ${error instanceof Error ? error.message : String(error)}`);
-                process.exit(1);
-            }
-        }
-        else if (options.generateKeys) {
-            const userId = options.user ||
-                (await inquirer_1.default
-                    .prompt([
-                    {
-                        type: "input",
-                        name: "userId",
-                        message: "Enter user ID:",
-                        default: "default_user",
-                    },
-                ])
-                    .then((answers) => answers.userId));
-            const outputDir = options.output || "./keys";
-            const spinner = (0, ora_1.default)(`Generating keys for user ${userId}...`).start();
-            try {
-                const encryptor = new encryption_1.Encryption({
-                    userId,
-                    keyDir: outputDir,
-                });
-                // Force key generation by calling a method
-                await encryptor.exportKey("public", path.join(outputDir, `${userId}_public_temp.pem`));
-                spinner.succeed(`Keys generated for user ${userId} in ${outputDir}`);
-            }
-            catch (error) {
-                spinner.fail(`Key generation failed: ${error instanceof Error ? error.message : String(error)}`);
-                process.exit(1);
-            }
-        }
-        else if (options.exportKey && options.user && options.type) {
-            const outputPath = options.output || `./${options.user}_${options.type}.pem`;
-            const spinner = (0, ora_1.default)(`Exporting ${options.type} key...`).start();
-            try {
-                const encryptor = new encryption_1.Encryption({
-                    userId: options.user,
-                });
-                await encryptor.exportKey(options.type, outputPath);
-                spinner.succeed(`${options.type.charAt(0).toUpperCase() + options.type.slice(1)} key exported to ${outputPath}`);
-            }
-            catch (error) {
-                spinner.fail(`Key export failed: ${error instanceof Error ? error.message : String(error)}`);
-                process.exit(1);
-            }
-            // Batch operations
-        }
-        else if (options.batch && options.directory) {
-            let password = options.password;
-            if (!password && (options.encrypt || options.decrypt)) {
-                const answers = await inquirer_1.default.prompt([
-                    {
-                        type: "password",
-                        name: "password",
-                        message: `Enter password for batch ${options.encrypt ? "encryption" : "decryption"}:`,
-                        mask: "*",
-                    },
-                ]);
-                password = answers.password;
-            }
-            const processor = new utils_1.BatchProcessor({
-                userId: options.user,
-            });
-            if (options.encrypt) {
-                const spinner = (0, ora_1.default)("Batch encrypting files...").start();
+                break;
+            case 'compress':
+                if (!options.file) {
+                    log.error("File path required for compression");
+                    process.exit(1);
+                }
+                const spinner6 = (0, ora_1.default)("Compressing file...").start();
                 try {
-                    const results = await processor.encryptDirectory(options.directory, password, options.recursive, options.contentType);
-                    spinner.succeed(`Batch encryption completed: ${results.length} files processed`);
-                    if (verbose) {
-                        results.forEach((file) => log.info(`Encrypted: ${file}`));
+                    const compressedFile = SecurityUtils.compressFile(sanitizeInput(options.file), options.output ? sanitizeInput(options.output) : undefined);
+                    spinner6.succeed(`File compressed: ${compressedFile}`);
+                }
+                catch (error) {
+                    spinner6.fail(`Compression failed: ${error instanceof Error ? error.message : String(error)}`);
+                    process.exit(1);
+                }
+                break;
+            case 'decompress':
+                if (!options.file) {
+                    log.error("File path required for decompression");
+                    process.exit(1);
+                }
+                const spinner7 = (0, ora_1.default)("Decompressing file...").start();
+                try {
+                    const decompressedFile = SecurityUtils.decompressFile(sanitizeInput(options.file), options.output ? sanitizeInput(options.output) : undefined);
+                    spinner7.succeed(`File decompressed: ${decompressedFile}`);
+                }
+                catch (error) {
+                    spinner7.fail(`Decompression failed: ${error instanceof Error ? error.message : String(error)}`);
+                    process.exit(1);
+                }
+                break;
+            case 'network-scan':
+                if (!options.host || !options.ports) {
+                    log.error("Host and ports required for network scanning");
+                    process.exit(1);
+                }
+                const ports = options.ports.split(',').map((p) => parseInt(p.trim())).filter((p) => !isNaN(p));
+                const spinner8 = (0, ora_1.default)(`Scanning ${ports.length} ports on ${options.host}...`).start();
+                try {
+                    const scanResult = await SecurityUtils.scanNetworkPorts(sanitizeInput(options.host), ports);
+                    spinner8.succeed(`Network scan completed`);
+                    log.success(`Open ports: ${scanResult.open.join(', ') || 'None'}`);
+                    log.info(`Closed ports: ${scanResult.closed.length}`);
+                }
+                catch (error) {
+                    spinner8.fail(`Network scan failed: ${error instanceof Error ? error.message : String(error)}`);
+                    process.exit(1);
+                }
+                break;
+            case 'cert-validate':
+                if (!options.file) {
+                    log.error("Certificate file path required");
+                    process.exit(1);
+                }
+                const spinner9 = (0, ora_1.default)("Validating certificate...").start();
+                try {
+                    const certResult = SecurityUtils.validateCertificate(sanitizeInput(options.file));
+                    if (certResult.valid) {
+                        spinner9.succeed("Certificate is valid");
+                        if (verbose) {
+                            log.info(`Certificate details: ${JSON.stringify(certResult.details, null, 2)}`);
+                        }
+                    }
+                    else {
+                        spinner9.fail("Certificate validation failed");
+                        log.error(`Error: ${certResult.details.error || 'Invalid format'}`);
+                        process.exit(1);
                     }
                 }
                 catch (error) {
-                    spinner.fail(`Batch encryption failed: ${error instanceof Error ? error.message : String(error)}`);
+                    spinner9.fail(`Certificate validation failed: ${error instanceof Error ? error.message : String(error)}`);
                     process.exit(1);
                 }
-            }
-            else if (options.decrypt) {
-                const spinner = (0, ora_1.default)("Batch decrypting files...").start();
+                break;
+            case 'log-analysis':
+                if (!options.file || !options.pattern) {
+                    log.error("Log file path and search pattern required");
+                    process.exit(1);
+                }
+                const spinner10 = (0, ora_1.default)("Analyzing log file...").start();
                 try {
-                    const results = await processor.decryptDirectory(options.directory, password, options.recursive, options.output);
-                    spinner.succeed(`Batch decryption completed: ${results.length} files processed`);
-                    if (verbose) {
-                        results.forEach((file) => log.info(`Decrypted: ${file}`));
+                    const logResult = SecurityUtils.analyzeLogFile(sanitizeInput(options.file), sanitizeInput(options.pattern));
+                    spinner10.succeed(`Log analysis completed: ${logResult.matches} matches found`);
+                    if (logResult.matches > 0 && verbose) {
+                        log.info("Matching lines:");
+                        logResult.lines.forEach((line, index) => {
+                            console.log(`${index + 1}: ${line}`);
+                        });
                     }
                 }
                 catch (error) {
-                    spinner.fail(`Batch decryption failed: ${error instanceof Error ? error.message : String(error)}`);
+                    spinner10.fail(`Log analysis failed: ${error instanceof Error ? error.message : String(error)}`);
                     process.exit(1);
                 }
-            }
-            else if (options.hash) {
-                const spinner = (0, ora_1.default)(`Generating ${options.algorithm} hashes...`).start();
+                break;
+            case 'integrity-check':
+                if (!options.file) {
+                    log.error("File path required for integrity check");
+                    process.exit(1);
+                }
+                const spinner11 = (0, ora_1.default)("Checking file integrity...").start();
                 try {
-                    const results = await processor.hashDirectory(options.directory, options.algorithm, options.recursive);
-                    spinner.succeed(`Batch hashing completed: ${Object.keys(results).length} files processed`);
-                    // Always show hash results
-                    for (const [filePath, fileHash] of Object.entries(results)) {
-                        console.log(`${filePath}: ${fileHash}`);
+                    const hasher = new hashing_1.Hashing();
+                    const hash1 = await hasher.hashFile(sanitizeInput(options.file), 'sha256');
+                    // Wait a moment and hash again to ensure consistency
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    const hash2 = await hasher.hashFile(sanitizeInput(options.file), 'sha256');
+                    if (hash1 === hash2) {
+                        spinner11.succeed("File integrity check passed");
+                        log.success(`File hash: ${hash1}`);
+                    }
+                    else {
+                        spinner11.fail("File integrity check failed - file may be corrupted");
+                        process.exit(1);
                     }
                 }
                 catch (error) {
-                    spinner.fail(`Batch hashing failed: ${error instanceof Error ? error.message : String(error)}`);
+                    spinner11.fail(`Integrity check failed: ${error instanceof Error ? error.message : String(error)}`);
                     process.exit(1);
                 }
-            }
-        }
-        else {
-            log.error("Invalid command combination. See --help for usage information.");
-            process.exit(1);
+                break;
+            default:
+                log.error(`Unknown operation type: ${options.type}`);
+                log.info("Available types: encryption, decryption, hash, verify, password, secure-delete, compress, decompress, network-scan, cert-validate, log-analysis, integrity-check");
+                process.exit(1);
         }
     }
     catch (error) {

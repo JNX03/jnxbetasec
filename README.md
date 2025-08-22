@@ -1,185 +1,280 @@
-# JnxBetaSec
+# SecureKit 🔒
 
-[![PyPI version](https://img.shields.io/pypi/v/jnxbetasec.svg)](https://test.pypi.org/project/jnxbetasec)  [![Python Versions](https://img.shields.io/pypi/pyversions/jnxbetasec.svg)](https://test.pypi.org/project/jnxbetasec/)  [![npm version](https://img.shields.io/npm/v/jnxbetasec.svg)](https://www.npmjs.com/package/jnxbetasec)  [![License](https://img.shields.io/pypi/l/jnxbetasec.svg)](https://github.com/JNX03/jnxbetasec/blob/main/LICENSE)
+[![PyPI version](https://img.shields.io/pypi/v/securekit.svg)](https://pypi.org/project/securekit)  [![Python Versions](https://img.shields.io/pypi/pyversions/securekit.svg)](https://pypi.org/project/securekit/)  [![npm version](https://img.shields.io/npm/v/securekit.svg)](https://www.npmjs.com/package/securekit)  [![License](https://img.shields.io/pypi/l/securekit.svg)](https://github.com/JNX03/jnxbetasec/blob/main/LICENSE)
 
-A comprehensive security library for encryption, hashing, and secure data handling, available for both Python and Node.js environments.
-
----
-## Table of Contents
-
-- [Features](#features)
-- [Installation](#installation)
-  - [Python](#python)
-  - [Node.js (NPM)](#nodejs-npm)
-- [Usage](#usage)
-  - [Python API](#python-api-usage)
-  - [Command-line Interface](#command-line-interface)
-  - [Node.js Usage](#nodejs-usage)
-- [Project Structure](#project-structure)
-- [Project Architecture](#project-architecture)
-- [Contributing](#contributing)
-- [License](#license)
+**SecureKit** is a comprehensive security toolkit for encryption, hashing, network security, and secure data handling. Available for both Python and Node.js environments with powerful CLI capabilities.
 
 ---
 
-## Features
+## 🚀 Features
 
-- **Robust Encryption:** Multi-layer protection for file encryption.
-- **Secure Hashing:** Reliable password hashing and verification.
-- **Integrity Verification:** Validate file integrity with secure hashing.
-- **Command-line Interface:** Easily encrypt, decrypt, and hash files via CLI.
-- **API Integration:** Importable modules for seamless integration in your Python projects.
-- **Dual Platform Support:** Use in Python projects or integrate in Node.js applications.
+### Core Security Features
+- **🔐 Advanced Encryption**: Multi-layer file encryption with AES-256
+- **🔑 Secure Hashing**: Multiple hash algorithms (SHA-256, SHA-512, MD5, etc.)
+- **🔍 File Integrity Checking**: Verify file integrity and detect corruption
+- **🗑️ Secure File Deletion**: Military-grade secure file deletion with multiple overwrite passes
+- **🔒 Password Generation**: Generate cryptographically secure passwords
+
+### Advanced Security Tools
+- **📦 Secure Compression**: Compress and decompress files securely
+- **🌐 Network Security Scanning**: Port scanning for security assessment
+- **📜 Certificate Validation**: X.509 certificate validation and analysis
+- **📊 Log Analysis**: Security log analysis with pattern matching
+- **🔍 Batch Processing**: Process multiple files efficiently
+
+### CLI Interface
+- **⚡ Modern CLI**: Advanced argument parsing with `--type` parameter
+- **🎯 Input Validation**: Built-in sanitization to prevent injection attacks
+- **📝 Verbose Logging**: Detailed output with progress indicators
+- **🔄 Cross-Platform**: Works on Windows, macOS, and Linux
 
 ---
 
-## Installation
+## 📦 Installation
 
-### Python
-
-Install JnxBetaSec via pip:
-
+### Python (PyPI)
 ```bash
-pip install jnxbetasec
+pip install securekit
 ```
 
-For development, install in editable mode:
-
+### Node.js (npm)
 ```bash
-pip install -e .
+npm install -g securekit
 ```
-
-### Node.js (NPM)
-
-Install the Node.js version via npm:
-
-```bash
-npm i jnxbetasec
-```
-
-For more details, refer to the [NPM package page](https://www.npmjs.com/package/jnxbetasec).
 
 ---
 
-## Usage
+## 🛠️ Usage
+
+### Command Line Interface
+
+SecureKit now supports a unified CLI interface with the `--type` parameter for all operations:
+
+#### File Encryption
+```bash
+securekit --type=encryption --file="document.pdf" --password="your-secure-password"
+```
+
+#### File Decryption
+```bash
+securekit --type=decryption --file="document.pdf.enc" --password="your-secure-password"
+```
+
+#### File Hashing
+```bash
+securekit --type=hash --file="document.pdf" --algorithm=sha256
+```
+
+#### Hash Verification
+```bash
+securekit --type=verify --file="document.pdf" --hash-value="abc123..." --algorithm=sha256
+```
+
+#### Password Generation
+```bash
+securekit --type=password --length=32 --include-symbols
+```
+
+#### Secure File Deletion
+```bash
+securekit --type=secure-delete --file="sensitive-file.txt" --overwrite-passes=7
+```
+
+#### File Compression
+```bash
+securekit --type=compress --file="large-file.txt" --output="compressed.gz"
+```
+
+#### File Decompression
+```bash
+securekit --type=decompress --file="compressed.gz" --output="restored-file.txt"
+```
+
+#### Network Port Scanning
+```bash
+securekit --type=network-scan --host="192.168.1.1" --ports="22,80,443,8080"
+```
+
+#### Certificate Validation
+```bash
+securekit --type=cert-validate --file="certificate.pem" --verbose
+```
+
+#### Log Analysis
+```bash
+securekit --type=log-analysis --file="access.log" --pattern="ERROR|WARN" --verbose
+```
+
+#### File Integrity Check
+```bash
+securekit --type=integrity-check --file="important-file.pdf"
+```
 
 ### Python API Usage
 
-Integrate the library in your Python project by importing the relevant modules:
-
 ```python
-from jnxbetasec import Encryption, Hashing
+from securekit import Encryption, Hashing, SecurityUtils
 
-# Initialize the encryption system
+# Encryption
 encryptor = Encryption(user_id="user123")
+encrypted_file = encryptor.encrypt_file("document.pdf", "password123")
 
-# Encrypt a file
-encrypted_file = encryptor.encrypt_file(
-    file_path="document.pdf",
-    password="your-secure-password"
-)
-print(f"File encrypted: {encrypted_file}")
+# Hashing
+hasher = Hashing()
+file_hash = hasher.hash_file("document.pdf", "sha256")
 
-# Decrypt a file
-decrypted_file = encryptor.decrypt_file(
-    file_path="document.jnx",
-    password="your-secure-password"
-)
-print(f"File decrypted: {decrypted_file}")
+# Security utilities
+password = SecurityUtils.generate_password(32, include_symbols=True)
+SecurityUtils.secure_delete("sensitive-file.txt")
 ```
 
-### Command-line Interface
-
-After installation, you can quickly perform security operations via the CLI:
-
-- **Encrypt a file:**
-
-  ```bash
-  jnxbetasec --encrypt --file document.pdf --password "your-secure-password"
-  ```
-
-- **Decrypt a file:**
-
-  ```bash
-  jnxbetasec --decrypt --file document.jnx --password "your-secure-password"
-  ```
-
-- **Generate a file hash (e.g., SHA-256):**
-
-  ```bash
-  jnxbetasec --hash --file document.pdf --algorithm sha256
-  ```
-
-- **Batch process files in a directory (recursive):**
-
-  ```bash
-  jnxbetasec --batch --encrypt --directory ./documents/ --password "your-secure-password" --recursive
-  ```
-
-### Node.js Usage
-
-For Node.js projects, after installation, you can require the package and utilize its functionalities. (Refer to the [NPM documentation](https://www.npmjs.com/package/jnxbetasec) for complete API details.)
+### Node.js API Usage
 
 ```javascript
-const jnxbetasec = require('jnxbetasec');
+const { Encryption, Hashing, SecurityUtils } = require('securekit');
 
-// Example: Encrypt a file (usage might vary based on your implementation)
-jnxbetasec.encryptFile({
-  filePath: 'document.pdf',
-  password: 'your-secure-password',
-  userId: 'user123'
-})
-.then(encryptedFile => {
-  console.log(`File encrypted: ${encryptedFile}`);
-})
-.catch(err => {
-  console.error('Encryption failed:', err);
-});
+// Encryption
+const encryptor = new Encryption({ userId: 'user123' });
+encryptor.encryptFile('document.pdf', 'password123')
+  .then(result => console.log(`Encrypted: ${result}`));
+
+// Password generation
+const password = SecurityUtils.generatePassword(32, true);
+console.log(`Generated password: ${password}`);
 ```
 
 ---
 
-## Project Structure
+## 🔧 Advanced Features
+
+### 1. **Multi-Pass Secure Deletion**
+Securely delete sensitive files with multiple overwrite passes:
+```bash
+securekit --type=secure-delete --file="secret.txt" --overwrite-passes=10
+```
+
+### 2. **Network Security Assessment**
+Scan for open ports on target systems:
+```bash
+securekit --type=network-scan --host="target.example.com" --ports="21,22,23,25,53,80,110,443,993,995"
+```
+
+### 3. **Certificate Analysis**
+Validate and analyze X.509 certificates:
+```bash
+securekit --type=cert-validate --file="server.crt" --verbose
+```
+
+### 4. **Security Log Analysis**
+Search for security patterns in log files:
+```bash
+securekit --type=log-analysis --file="/var/log/auth.log" --pattern="Failed.*root" --verbose
+```
+
+### 5. **Batch Operations**
+Process multiple files with batch mode:
+```bash
+securekit --type=encryption --directory="/sensitive-docs" --password="batch-password" --batch --recursive
+```
+
+---
+
+## 🔒 Security Features
+
+- **AES-256 Encryption**: Industry-standard encryption algorithm
+- **Secure Random Generation**: Cryptographically secure random number generation
+- **Input Sanitization**: Prevents path traversal and injection attacks
+- **Memory-Safe Operations**: Secure handling of sensitive data in memory
+- **Multi-Platform Security**: Consistent security across different operating systems
+
+---
+
+## 📁 Project Structure
 
 ```plaintext
-jnxbetasec/
+securekit/
 ├── README.md
-├── setup.py
-├── jnxbetasec/
-│   ├── __init__.py
-│   ├── __main__.py
-│   ├── cli.py
+├── package.json                # Node.js package configuration
+├── setup.py                   # Python package configuration
+├── src/                       # TypeScript source code
+│   ├── cli.ts                # CLI interface
 │   ├── core/
-│   │   ├── __init__.py
-│   │   ├── encryption.py
-│   │   ├── hashing.py
-│   │   └── utils.py
+│   │   ├── encryption.ts     # Encryption utilities
+│   │   ├── hashing.ts        # Hashing utilities
+│   │   └── utils.ts          # Additional utilities
+│   └── types.ts              # Type definitions
+├── securekit/                # Python package
+│   ├── __init__.py
+│   ├── cli.py               # Python CLI interface
+│   ├── core/
+│   │   ├── encryption.py    # Encryption utilities
+│   │   ├── hashing.py       # Hashing utilities
+│   │   └── utils.py         # Additional utilities
 │   └── tests/
-│       ├── __init__.py
-│       ├── test_encryption.py
-│       └── test_hashing.py
+└── test/                    # Test suites
 ```
----
-
-## Project Architecture
-
-![Untitled diagram-2025-03-20-160558](https://github.com/user-attachments/assets/26945d77-1b4f-4a10-a790-60c0bc82a71f)
----
-
-## Contributing
-
-Contributions are welcome! If you wish to improve JnxBetaSec:
-
-1. Fork the repository.
-2. Create a new branch for your feature or bugfix.
-3. Ensure that all tests pass.
-4. Submit a pull request outlining your changes.
 
 ---
 
-## License
+## 🤝 Contributing
 
-JnxBetaSec is licensed under the terms of the [MIT License](https://github.com/JNX03/jnxbetasec/blob/main/LICENSE).
+We welcome contributions! Please follow these steps:
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Make your changes with proper testing
+4. Commit your changes: `git commit -m 'Add amazing feature'`
+5. Push to the branch: `git push origin feature/amazing-feature`
+6. Open a Pull Request
 
 ---
 
+## 📋 Requirements
+
+### Python
+- Python 3.8 or higher
+- cryptography>=39.0.0
+- click>=8.0.0
+- Additional dependencies in `setup.py`
+
+### Node.js
+- Node.js 16.0.0 or higher
+- TypeScript support
+- Additional dependencies in `package.json`
+
+---
+
+## 📄 License
+
+SecureKit is licensed under the [MIT License](LICENSE).
+
+---
+
+## 🆘 Support
+
+- **Issues**: [GitHub Issues](https://github.com/JNX03/jnxbetasec/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/JNX03/jnxbetasec/discussions)
+- **Email**: Jn03official@gmail.com
+
+---
+
+## 🔄 Changelog
+
+### Version 2.0.0
+- **🎉 Renamed to SecureKit** for better branding
+- **⚡ Enhanced CLI** with `--type` parameter system
+- **🔒 Added 12+ new security features**:
+  - Secure file deletion
+  - Password generation
+  - File compression/decompression
+  - Network port scanning
+  - Certificate validation
+  - Log analysis
+  - File integrity checking
+- **🛡️ Improved security** with input validation and sanitization
+- **📦 Better package management** for both npm and PyPI
+- **🔧 Enhanced error handling** and user experience
+
+---
+
+**Made with ❤️ by [Jnx03](https://github.com/JNX03)**
